@@ -1,0 +1,31 @@
+name: nut-client
+depends:
+  - network:
+    - addresses
+    - connectivity
+    - etcfiles
+container:
+  entrypoint: ./upsmon
+  args:
+    - -D
+  mounts:
+    - source: /lib
+      destination: /lib
+      type: bind
+      options:
+        - bind
+        - ro
+    - source: /usr/lib
+      destination: /usr/lib
+      type: bind
+      options:
+        - bind
+        - ro
+    - source: /run/nut
+      destination: /run/nut
+      type: bind
+      options:
+        - rshared
+        - rbind
+        - rw
+restart: always

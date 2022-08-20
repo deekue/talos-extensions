@@ -1,0 +1,12 @@
+version: v1alpha1
+metadata:
+  name: nut-client
+  version: v0.1
+  author: Sidero Labs
+  description: |
+    This system extension provides the network-ups-tools client.
+    This can be used to monitor a NUT server over the network and provide
+    graceful shutdown on power events.
+  compatibility:
+    talos:
+      version: ">= v1.2.0"
