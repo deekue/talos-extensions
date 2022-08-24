@@ -3,79 +3,12 @@ variant: scratch
 shell: /toolchain/bin/bash
 dependencies:
   - stage: base
-steps:
-  - sources:
-      - url: https://networkupstools.org/source/2.8/nut-2.8.0.tar.gz
-        destination: nut.tar.gz
-        sha256: c3e5a708da797b7c70b653d37b1206a000fcb503b85519fe4cdf6353f792bfe5
-        sha512: 3c413ae54088045a713eb80cf1bdda474f41bb3b67c7c0248aa7a0c4d441dce1ff42627a2735273d7e36892d1f2eeb895220cf28af63fec2fa0c7a267f82d577
-    prepare:
-      - |
-        tar -xzf nut.tar.gz --strip-components=1
-
-        # Create symlinks for binaries required by libtoolize.
-        ln -s /toolchain/bin/sed /bin/sed
-        ln -s /toolchain/bin/sed /usr/bin/sed
-        ln -s /toolchain/bin/grep /bin/grep
-
-        # Create symlinks for files used when building.
-        mkdir -p /usr/bin
-        ln -s /toolchain/bin/pkg-config /usr/bin/pkg-config
-        ln -s /toolchain/bin/file /usr/bin/file
-    build:
-      - |
-        export PKG_CONFIG_PATH=/usr/lib/pkgconfig
-        ./configure \
-        	--prefix=/usr/local \
-        	--libexecdir=/usr/local/lib/nut \
-        	--without-wrap \
-        	--with-user=nut \
-        	--with-group=nut \
-        	--disable-static \
-        	--with-serial \
-        	--with-usb \
-        	--without-avahi \
-        	--with-snmp \
-        	--with-modbus \
-        	--with-neon \
-        	--without-powerman \
-        	--without-ipmi \
-        	--without-freeipmi \
-        	--with-libltdl \
-        	--without-cgi \
-        	--with-drvpath=/usr/local/lib/nut \
-        	--datadir=/usr/local/share/nut \
-        	--sysconfdir=/usr/local/etc/nut \
-        	--with-statepath=/var/run/nut \
-        	--with-altpidpath=/var/run/nut \
-        	--with-udev-dir=/usr/local/etc/udev \
-        	--with-nss \
-        	--with-openssl
-
-        LDFLAGS="$LDFLAGS -L/usr/local/lib" \
-          make -j $(nproc) \
-            prefix=/usr/local \
-            exec_prefix=/usr/local \
-            localstatedir=/var \
-            sysconfdir=/usr/local/etc \
-            mandir=/usr/local/share/man \
-            OPTFLAGS="$CFLAGS -I/usr/local/include -DNO_SYSTEMD"
-    install:
-      - |
-        mkdir -p /usr/local/etc
-        make prefix=/usr/local exec_prefix=/usr/local/ etcdir=/usr/local/etc DESTDIR=/rootfs install
-        cp /usr/local/lib/nut/upsmon /rootfs/usr/local/lib/containers/nut-client/upsmon
-
-        # cleanup
-        rm -rf /rootfs/usr/local/share
-        rm -rf /rootfs/usr/local/include
-        rm -rf /rootfs/usr/local/lib/pkgconfig
-
-        cp /pkg/files/* /rootfs/usr/local/etc/
+  - stage: libusb
+  - stage: nut
 finalize:
   - from: /rootfs
     to: /rootfs
   - from: /pkg/manifest.yaml
     to: /
-  - from: /pkg/nut-client.yaml
+  - from: /pkg/nut.yaml
     to: /rootfs/usr/local/etc/containers/

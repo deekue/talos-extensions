@@ -1,0 +1,85 @@
+name: nut
+variant: scratch
+shell: /toolchain/bin/bash
+dependencies:
+  - stage: base
+  - stage: libusb
+  - image: "{{ .PKGS_PREFIX }}/openssl:{{ .PKGS_VERSION }}"
+  - image: "{{ .PKGS_PREFIX }}/util-linux:{{ .PKGS_VERSION }}"
+# - image: "{{ .PKGS_PREFIX }}/libusb:{{ .PKGS_VERSION }}"
+  - image: "ghcr.io/deekue/libusb:e047708-dirty"
+# - image: "ghcr.io/deekue/libusb:335e3f3-dirty"
+steps:
+  - sources:
+      - url: https://networkupstools.org/source/2.8/nut-2.8.0.tar.gz
+        destination: nut.tar.gz
+        sha256: c3e5a708da797b7c70b653d37b1206a000fcb503b85519fe4cdf6353f792bfe5
+        sha512: 3c413ae54088045a713eb80cf1bdda474f41bb3b67c7c0248aa7a0c4d441dce1ff42627a2735273d7e36892d1f2eeb895220cf28af63fec2fa0c7a267f82d577
+    prepare:
+      - |
+        tar -xzf nut.tar.gz --strip-components=1
+
+        export PATH="$PATH:/toolchain/bin"
+
+        # Create symlinks for binaries required by libtoolize.
+        ln -s /toolchain/bin/sed /bin/sed
+        ln -s /toolchain/bin/grep /bin/grep
+
+        # Create symlinks for files used when building.
+        mkdir -p /usr/bin
+        ln -s /toolchain/bin/pkg-config /usr/bin/pkg-config
+        ln -s /toolchain/bin/file /usr/bin/file
+
+        cp /toolchain/share/automake-1.16/config.guess config.guess
+        autoreconf -if
+
+        export PKG_CONFIG_PATH=/usr/lib/pkgconfig
+        ./configure \
+        	--prefix=/usr/local \
+        	--libexecdir=/usr/local/lib/nut \
+        	--datadir=/usr/local/share/nut \
+        	--sysconfdir=/usr/local/etc/nut \
+        	--with-drvpath=/usr/local/lib/nut \
+        	--with-statepath=/var/run/nut \
+        	--with-altpidpath=/var/run/nut \
+        	--with-udev-dir=/usr/local/etc/udev \
+          --with-systemdsystemunitdir=no \
+          --with-systemdshutdowndir=no \
+          --with-systemdtmpfilesdir=no \
+        	--with-user=nut \
+        	--with-group=nut \
+        	--with-openssl \
+        	--with-usb \
+        	--disable-static \
+        	--without-avahi \
+        	--without-cgi \
+        	--without-freeipmi \
+        	--without-ipmi \
+        	--without-libltdl \
+        	--without-modbus \
+        	--without-neon \
+        	--without-nss \
+        	--without-powerman \
+        	--without-serial \
+        	--without-snmp \
+        	--without-wrap \
+        || cat config.log
+          
+    build:
+      - |
+        make -j $(nproc)
+    install:
+      - |
+        mkdir -p /usr/local/etc /rootfs/usr/local/lib/containers/nut
+        make DESTDIR=/rootfs install
+        cp /usr/local/lib/nut/upsmon /rootfs/usr/local/lib/containers/nut/upsmon
+
+        # cleanup
+        rm -rf /rootfs/usr/local/share
+        rm -rf /rootfs/usr/local/include
+        rm -rf /rootfs/usr/local/lib/pkgconfig
+
+        cp /pkg/files/* /rootfs/usr/local/etc/
+finalize:
+  - from: /rootfs
+    to: /rootfs
