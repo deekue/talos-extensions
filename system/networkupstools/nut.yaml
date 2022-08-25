@@ -1,4 +1,4 @@
-name: nut-client
+name: nut
 depends:
   - network:
     - addresses

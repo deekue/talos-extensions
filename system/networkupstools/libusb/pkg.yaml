@@ -14,7 +14,7 @@ steps:
       - |
         tar -xjf libusb.tar.bz2 --strip-components=1
         ./configure \
-            --prefix=/usr/local \
+            --prefix=${TOOLCHAIN} \
             --enable-static
     build:
       - |

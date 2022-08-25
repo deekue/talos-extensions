@@ -4,11 +4,9 @@ shell: /toolchain/bin/bash
 dependencies:
   - stage: base
   - stage: libusb
+  - image: "{{ .PKGS_PREFIX }}/eudev:{{ .PKGS_VERSION }}"
   - image: "{{ .PKGS_PREFIX }}/openssl:{{ .PKGS_VERSION }}"
   - image: "{{ .PKGS_PREFIX }}/util-linux:{{ .PKGS_VERSION }}"
-# - image: "{{ .PKGS_PREFIX }}/libusb:{{ .PKGS_VERSION }}"
-  - image: "ghcr.io/deekue/libusb:e047708-dirty"
-# - image: "ghcr.io/deekue/libusb:335e3f3-dirty"
 steps:
   - sources:
       - url: https://networkupstools.org/source/2.8/nut-2.8.0.tar.gz
@@ -31,6 +29,7 @@ steps:
         ln -s /toolchain/bin/file /usr/bin/file
 
         cp /toolchain/share/automake-1.16/config.guess config.guess
+        cp /toolchain/lib/libstdc++* /lib
         autoreconf -if
 
         export PKG_CONFIG_PATH=/usr/lib/pkgconfig
@@ -71,7 +70,7 @@ steps:
       - |
         mkdir -p /usr/local/etc /rootfs/usr/local/lib/containers/nut
         make DESTDIR=/rootfs install
-        cp /usr/local/lib/nut/upsmon /rootfs/usr/local/lib/containers/nut/upsmon
+        cp /rootfs/usr/local/sbin/upsmon /rootfs/usr/local/lib/containers/nut/upsmon
 
         # cleanup
         rm -rf /rootfs/usr/local/share
