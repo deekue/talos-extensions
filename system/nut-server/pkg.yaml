@@ -1,4 +1,4 @@
-name: networkupstools
+name: nut-server
 variant: scratch
 shell: /toolchain/bin/bash
 dependencies:
@@ -10,5 +10,5 @@ finalize:
     to: /rootfs
   - from: /pkg/manifest.yaml
     to: /
-  - from: /pkg/nut.yaml
+  - from: /pkg/nut-server.yaml
     to: /rootfs/usr/local/etc/containers/

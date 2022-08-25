@@ -1,10 +1,10 @@
 version: v1alpha1
 metadata:
-  name: networkupstools
+  name: nut-server
   version: v0.1
   author: Sidero Labs
   description: |
-    This system extension provides the network-ups-tools service.
+    This system extension provides the full network-ups-tools service.
   compatibility:
     talos:
       version: ">= v1.2.0"

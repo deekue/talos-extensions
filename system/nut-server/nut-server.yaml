@@ -1,11 +1,12 @@
-name: nut
+name: nut-server
 depends:
   - network:
     - addresses
     - connectivity
     - etcfiles
 container:
-  entrypoint: ./upsmon
+  # TODO need to run ups driver too. in same container?
+  entrypoint: ./upsd
   args:
     - -D
   mounts:
@@ -21,8 +22,8 @@ container:
       options:
         - bind
         - ro
-    - source: /run/nut
-      destination: /run/nut
+    - source: /var/run
+      destination: /var/run
       type: bind
       options:
         - rshared
