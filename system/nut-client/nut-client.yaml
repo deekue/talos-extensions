@@ -8,6 +8,7 @@ container:
   entrypoint: ./upsmon
   args:
     - -D
+    - -p
   mounts:
     - source: /lib
       destination: /lib
@@ -34,8 +35,8 @@ container:
       options:
         - bind
         - ro
-    - source: /var/run/nut
-      destination: /var/run/nut
+    - source: /var/run
+      destination: /var/run
       type: bind
       options:
         - rshared
