@@ -63,11 +63,10 @@ steps:
         	--without-serial \
         	--without-snmp \
         	--without-wrap \
-        || cat config.log
-          
+          || (cat config.log ; exit 1)
     build:
       - |
-        make -j $(nproc)
+        make -j $(nproc) all
     install:
       - |
         mkdir -p /usr/local/etc /rootfs/usr/local/lib/containers/nut
