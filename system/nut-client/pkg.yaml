@@ -14,7 +14,10 @@ steps:
     prepare:
       - |
         tar -xzf nut.tar.gz --strip-components=1
-
+      - |
+        # no shell for you
+        patch -p1 < /pkg/replace_system.patch
+      - |
         export PATH="$PATH:/toolchain/bin"
 
         # Create symlinks for binaries required by libtoolize.
@@ -66,18 +69,27 @@ steps:
         make -j $(nproc) all
     install:
       - |
-        mkdir -p /usr/local/etc /rootfs/usr/local/lib/containers/nut-client
-        make DESTDIR=/rootfs install
-        cp /rootfs/usr/local/sbin/upsmon /rootfs/usr/local/lib/containers/nut-client/upsmon
+        make DESTDIR=/rootfs install-exec
+
+        containerRoot=/rootfs/usr/local/lib/containers/nut-client
+        mkdir -p "$containerRoot"/{etc,sbin}
+        cp /rootfs/usr/local/sbin/upsmon "$containerRoot/upsmon"
+        cp /pkg/files/* "$containerRoot/etc/"
+
+        # TODO replace /usr/bin/wall with either a wrapper for printk or a
+        # Go cmd to log to Talos Events
+
+        # /sbin/init is bind mounted in nut-client.yaml
+        pushd "$containerRoot/sbin"
+        ln -sv ./init poweroff
+        popd
 
         # cleanup
-        rm -rf /rootfs/usr/bin
-        rm -rf /rootfs/usr/sbin
-        rm -rf /rootfs/usr/local/share
-        rm -rf /rootfs/usr/local/include
-        rm -rf /rootfs/usr/local/lib/pkgconfig
+        rm -rf /rootfs/usr/local/bin
+        rm -rf /rootfs/usr/local/etc
+        rm -rf /rootfs/usr/local/lib/nut
+        rm -rf /rootfs/usr/local/sbin
 
-        cp /pkg/files/* /rootfs/usr/local/etc/
 finalize:
   - from: /rootfs
     to: /rootfs
